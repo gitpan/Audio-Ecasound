@@ -37,4 +37,4 @@ while (1) {
 }
 $e->eci("stop");
 $e->eci("cs-disconnect");
-print "Chain operator status: ", $e->eci("cop-status");
+print $e->eci("cop-status"), "\n";

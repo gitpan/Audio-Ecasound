@@ -37,4 +37,4 @@ while (1) {
 }
 eci("stop");
 eci("cs-disconnect");
-print "Chain operator status: ", eci("cop-status");
+print eci("cop-status"), "\n";

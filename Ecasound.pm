@@ -73,7 +73,7 @@ sub AUTOLOAD {
     goto &$cmd;
 }
 
-$VERSION = '0.2';
+$VERSION = '0.9';
 bootstrap Audio::Ecasound $VERSION;
 
 # Generate wrappers(OO or not-OO) for raw C functions
@@ -99,7 +99,7 @@ for my $cmd (@cmds) {
 sub dl_load_flags { 0x01 }
 
 my %opts = (
-        on_error => 'warn', # 'die', ''
+        on_error => 'warn', # 'die', '', 'cluck', 'confess'
         errmsg => '',
     );
 
@@ -128,6 +128,26 @@ sub new {
     bless $self, $class;
 }
 
+sub do_error {
+    my $self = &_shift_self;
+    my $errstr = shift;
+
+    $self->errmsg($errstr);
+    
+    my $on_error = $self->on_error;
+    no strict 'refs';
+    if($on_error eq 'die') {
+        die "Audio::Ecasound::error: $errstr\n";
+    } elsif($on_error eq 'warn') {
+        warn "Audio::Ecasound::error: $errstr\n";
+    } elsif(exists &{"Carp::$on_error"}) {
+        &{"Carp::$on_error"}("Audio::Ecasound::error: $errstr\n");
+    } elsif($on_error) {
+        die "Audio::Ecasound::error: $errstr\n"
+            ."(And on_error=$on_error is bad)\n";
+    }
+    return;
+}
 
 # do everything in one function
 sub eci {
@@ -142,14 +162,7 @@ sub eci {
         # Handle an eci error
         if($self->error()) {
             my $errstr = $self->last_error() . "(in $cmdstr)";
-            $self->errmsg($errstr);
-            if($self->on_error eq 'die') {
-                die "Audio::Ecasound::error: $errstr\n";
-            } elsif($self->on_error eq 'warn') {
-                warn "Audio::Ecasound::error: $errstr\n";
-            } else {
-                return; 
-            }
+            return $self->do_error($errstr);
         }
     } else {
         # multiline commands
@@ -164,17 +177,10 @@ sub eci {
 
             $self->command($mcmdstr);
 
-            # Handle an eci error
+            # Handle an eci error ( would be 'e' return code )
             if($self->error()) {
                 my $errstr = $self->last_error() . "(in $mcmdstr)";
-                $self->errmsg($errstr);
-                if($self->on_error eq 'die') {
-                    die "Audio::Ecasound::error: $errstr\n";
-                } elsif($self->on_error eq 'warn') {
-                    warn "Audio::Ecasound::error: $errstr\n";
-                } else {
-                    return; 
-                }
+                return $self->do_error($errstr);
             }
         }
     }
@@ -184,14 +190,14 @@ sub eci {
     my $ret;
     my $type = $self->last_type();
     if($type eq 'i') {
-        $self->last_integer();
+        return $self->last_integer();
     } elsif($type eq 'f') {
-        $self->last_float();
+        return $self->last_float();
     } elsif($type eq 's') {
-        $self->last_string();
+        return $self->last_string();
     } elsif($type eq 'li') {
-        $self->last_long_integer();
-    } elsif($type eq '') {
+        return $self->last_long_integer();
+    } elsif($type eq '' || $type eq '-') { # - from python
         return ''; # false but defined
     } elsif($type eq 'S') {
         my $count = $self->last_string_list_count();
@@ -202,6 +208,9 @@ sub eci {
             push @ret, $self->last_string_list_item($n);
         }
         return @ret;
+    } elsif($type eq 'e') { # should be handled above...
+        my $errstr = $self->last_error() . "(in $cmdstr)";
+        return $self->do_error($errstr);
     } else {
         die "last_type() returned unexpected type <$type>";
     }
@@ -219,7 +228,8 @@ sub _shift_self {
     } elsif(ref $_[0]) {
         return shift;
     } elsif ( $_[0] =~ /^[_a-zA-Z][\w:']*$/ # Common package names
-            && $_[0]->isa(__PACKAGE__) ) {
+            && UNIVERSAL::isa($_[0],__PACKAGE__) ) {
+            #&& $_[0]->isa(__PACKAGE__) ) {
         return shift;
     } else {
         return __PACKAGE__;
@@ -313,8 +323,8 @@ packed into Wembly Stadium.
 
 Ecasound is a software package designed for multitrack audio processing.
 It can be used for audio playback, recording, format conversions,
-effects processing, mixing and as a LADSPA plugin host.  
-Version E<gt>= 2.0.1 must be installed to use this package.
+effects processing, mixing, as a LADSPA plugin host and JACK node.  
+Version E<gt>= 2.2.X must be installed to use this package.
 L<SEE ALSO> for more info.
 
 =head1 INSTALLATION
@@ -331,15 +341,13 @@ your hands... See L<THREADING NOTE>
 
 =head1 THREADING NOTE
 
-The ecasoundc library uses pthreads so will probably only work if
+The ecasoundc library uses pthreads so will may only work if
 your perl was compiled with threading enabled, check with:
 
  % perl -V:usethreads
 
 You are welcome to try using the module with non-threaded perls
-(perhaps -D_REENTRANT alone would work) but expect problems.
-On my Linux box it hangs during intialization without threads but
-if can be made to work let me know.   
+(perhaps -D_REENTRANT alone would work) it have worked for some.
 
 =head1 EXPORT
 
@@ -409,7 +417,7 @@ Error processing is performed for each command in a multiline command.
 =item B<on_error('die')>
 
 Set the action to be taken when an error occurs from and C<eci>
-command, may be 'die', 'warn' or '' (default is 'warn'). 
+command, may be 'die', 'warn', '', 'confess', ... (default is 'warn'). 
 
 When '' is selected C<return;> is used for an error, that is undef or
 ().  To disamibiguate eci will return '' or ('') for no return value
@@ -508,7 +516,12 @@ and controls the amount and type of debugging information, see the
 ecasound documentation of source or just try your favorite powers
 of two.
 
-=head1 FILES
+=head1 FILES AND ENVIRONMENT
+
+The libecasoundc library now uses the environment variable
+"ECASOUND" to find the ecasound executable.  If it is not set then
+the libarary will print a warning.  To suppress it, simply set
+the ECASOUND variable: eg. export ECASOUND=ecaosund
 
 The ecasound library will still process ~/.ecasoundrc and other
 setup files for default values.  See the library documentation.
@@ -522,5 +535,12 @@ This software may be distributed under the same terms as Perl itself.
 
 The Ecasound Programmer's Guide and ECI doc,
 L<ecasound>, L<ecasound-iam> http://eca.cx/, http://www.ladspa.org/
+
+The internals of libecasoundc have been rebuilt and now interact with
+a running ecasound via a socket using a protocol defined in the
+Programmer's Guide.  The C library is now just a compatibility layer
+and the Python version now talks directly to the socket.
+It would be straight forward to write an equivalent Perl version
+should the need arise.
 
 =cut

@@ -1,5 +1,16 @@
 Revision history for Perl extension Audio::Ecasound.
 
+0.9   Sun Aug 10 16:38:10 EST 2003
+    - Use UNIVERSAL::isa for self test (more robust)
+    - Updated eg/* for new cop-status
+    - on_error with Carp::* + docs
+    - Use libecasoundc-config (renamed in ecasound)
+    - Fix lib dir in Ecasound.xs (change in ecasound)
+    - Makefile.PL requires ecasound 2.2 for above
+    - Remove -lkvutils, not required
+    - Thread warning updated from feedback
+    - Update/Fix tests for new return formats and codes
+    - Warn and document ECASOUND re: env var
 0.2   Tue Jun 26 01:28:01 EST 2001
     - Public debut, Changes file becomes relevant
 0.01  Mon May 21 14:39:57 2001

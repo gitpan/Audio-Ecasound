@@ -4,9 +4,12 @@ WriteMakefile(
     NAME            => 'Audio::Ecasound',
     VERSION_FROM    => 'Ecasound.pm', 
     PREREQ_PM        => {}, # e.g., Module::Name => 1.1
-    # the -lkvutils shouldn't be required
-    LIBS            => ['-lecasoundc -lkvutils'], 
-    INC                => '', 
+    # next two could be from libecasoundc-config --libs --cflags
+    # not for now since want it to install w/o libecasoundc-config
+    # (the -lkvutils shouldn't be required)
+    #LIBS            => ['-lecasoundc -lkvutils'], 
+    LIBS            => ['-lecasoundc'], 
+    INC                => '',
     ABSTRACT_FROM    => 'Ecasound.pm', 
     AUTHOR            => 'Brad Bowman <eci-perl@bowman.bs>', 
     dist            => { 
@@ -26,38 +29,39 @@ WriteMakefile(
             {
                 print <<EOT;
 Your perl was not built with -Dusethreads or -D_REENTRANT
-This is likely to cause problems loading the multithreaded
-library ecasoundc  (hanging on loading).  
-You are welcome to try anyway...
+This may cause problems loading the multithreaded library 
+ecasoundc  (hanging on loading).  It has worked fine for some.
+You are welcome to try...
 EOT
                 print "Proceed anyway? ";
                 for(print "(yn)\n"; $_ = <STDIN>; print "(yn)?\n") {
-                    if(/^n/i) { print "Aborting\n"; exit; }
+                    if(/^n/i) { print "Aborting\n"; exit(1); }
                     if(/^y/i) { print "Continuing\n"; last; }
                 }
             }
             
-            # ecasound < 2.0.1 didn't have reentrant C interface
-            my $eca_version = `ecasoundc-config --version`;
+            # ecasound < 2.2 (v2.1dev8) mv'd headers and config prgm
+            # old: ecasound < 2.0.1 didn't have reentrant C interface
+            my $eca_version = `libecasoundc-config --version`;
             if(!defined($eca_version)) {
                 warn "Running ecasoundc-config failed: $!\n";
                 
                 print <<EOT;
 The ecasoundc-config program is used to find the version of the
-ecasoundc library.  You need 2.0.1 or higher.
+ecasoundc library.  You need 2.2.0 or higher.
 EOT
                 print "Proceed anyway? ";
                 for(print "(yn)\n"; $_ = <STDIN>; print "(yn)?\n") {
-                    if(/^n/i) { print "Aborting\n"; exit; }
+                    if(/^n/i) { print "Aborting\n"; exit(1); }
                     if(/^y/i) { print "Continuing\n"; last; }
                 }
             } else {
                 chomp $eca_version;
                 # Compare versions pre v-strings 
                 my @ev = split /\./, $eca_version;
-                unless($ev[0] >= 2 && $ev[1] >= 0 && $ev[2] >= 1) {
+                unless($ev[0] >= 2 && $ev[1] >= 2) {
                     print <<EOT;
-Version 2.0.1 of ecasound is required, you have $eca_version.
+Version 2.2.0+ of ecasound is required, you have $eca_version.
 EOT
                     print "Proceed anyway (bad idea)? ";
                     for(print "(yn)\n"; $_ = <STDIN>; print "(yn)?\n") {
@@ -66,8 +70,17 @@ EOT
                     }
                 }
             }
+            unless ($ENV{ECASOUND}) {
+                print <<EOT;
+
+ECI now uses the "ECASOUND" env var to find the ecasound executable.
+Set it correctly to suppress the library warning. 
+(The PATH is searched so ECASOUND=ecasound usually works)
+
+EOT
+            }
             unless ($Config{ivsize} >= $Config{longsize}) {
-                warn "long int is bigger than IV, may cause problems with last_long_interger";
+                warn "long int is bigger than IV, may cause problems with last_long_interger\n";
             }
             return \%cfg;
         },

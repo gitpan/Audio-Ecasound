@@ -40,4 +40,4 @@ while (1) {
 }
 stop;
 cs_disconnect;
-print "Chain operator status: ", cop_status;
+print cop_status, "\n";

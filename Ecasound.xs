@@ -2,7 +2,7 @@
 #include "perl.h"
 #include "XSUB.h"
 
-#include <ecasound/ecasoundc.h>
+#include <libecasoundc/ecasoundc.h>
 
 MODULE = Audio::Ecasound        PACKAGE = Audio::Ecasound
 

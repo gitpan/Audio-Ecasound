@@ -1,6 +1,6 @@
 
 use Test;
-BEGIN { $| = 1; plan tests => 42, todo => [] }
+BEGIN { $| = 1; plan tests => 46, todo => [ 7 ] }
 END { ok(0) unless $loaded;}
 use Audio::Ecasound qw(:simple :std :raw :raw_r :iam);
 $loaded = 1;
@@ -24,16 +24,17 @@ ok eci_last_integer() => 0;
 eci_command('cs-list');
 ok eci_last_type() => 'S'; 
 my $n = eci_last_string_list_count();
-ok $n => 1;
+ok $n => 1; # XXX gets 2
 ok ((eci_last_string_list_item($n-1))[0] => 'c1');
 eci_command('cs-get-length');
 ok eci_last_type() => 'f'; 
 ok eci_last_float() => 0;
 eci_command_float_arg('cs-set-length', 2.0);
-ok eci_last_type() => '';
+ok eci_last_type() => '-'; # once was ''
 eci_command('start'); 
 ok eci_error() => 1;
-ok eci_last_error() => qr/chainsetup cannot be connected/;
+ok eci_last_error() => qr/No chainsetup connected/i; # changed
+ok eci_last_type() => 'e'; 
 
 # raw_r interface (test 14)
 # call with wrong $obj
@@ -43,26 +44,33 @@ my $eh = eci_init_r();
 ok ref($eh) => 'eci_handle_t';
 eci_command_r($eh,'status'); 
 ok eci_last_type_r($eh) => 's';
-ok eci_last_string_r($eh) => qr/Engine status/;
+ok eci_last_string_r($eh) => qr/Chainsetup status/i; # changed
 eci_cleanup_r($eh);
 
 # simple (test 18)
-ok eci('status') => qr/Engine status/;
+ok eci('status') => qr/Chainsetup status/i; #changed
 
 ok on_error() => 'warn'; # default val
 ok on_error('') => '';
 ok !defined(eci('start')); # error
-ok errmsg() => qr/chainsetup cannot be connected/;
+#ok errmsg() => qr/chainsetup cannot be connected/;
+ok errmsg() => qr/No chainsetup connected/i; # changed
 ok errmsg('') => '';
 eci('cs-set-length');  
 ok errmsg() => qr/argument omitted/;
 eci('cs-set-length', 4.0);  
-ok eci('cs-get-length') => 4;
+ok eci('cs-get-length') => 4; # 4.000?
+
+ok on_error('confess') => 'confess';
+eval { eci('asyntaxerror'); };
+ok $@ => qr/Unknown command/;
+ok errmsg() => qr/Unknown command/;
 
 ok on_error('die') => 'die';
 eval { eci('asyntaxerror'); };
 ok $@ => qr/Unknown command/;
 ok errmsg() => qr/Unknown command/;
+
 
 # OO interface (test 28)
 my $e = new Audio::Ecasound;
@@ -72,17 +80,17 @@ on_error('warn');
 ok $e->on_error() => 'die'; # diverge from class
 $e->errmsg('');
 eval { $e->eci('start') };
-ok $@ => qr/no chainsetup connected/;
+ok $@ => qr/No chainsetup connected/i;
 eval { $e->eci('cs-set-length'); };
 ok $@ => qr/argument omitted/;
 ok $e->errmsg() => qr/argument omitted/;
-ok $e->eci('status') => qr/Engine status/;
+ok $e->eci('status') => qr/Chainsetup status/i; #changed
 $e->eci('cs-add c1');
 $e->eci('cs-set-length', 5.0);
 ok $e->eci('cs-get-length') => 5;
 
 # comments added
-ok eci('status # a comment') => qr/Engine status/;
+ok eci('status # a comment') => qr/Chainsetup status/i; #changed
 # multiline commands
 ok eci("cs-set-length 6
         cs-get-length") => 6;

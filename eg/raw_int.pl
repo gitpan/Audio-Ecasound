@@ -38,4 +38,4 @@ while (1) {
 command("stop");
 command("cs-disconnect");
 command("cop-status");
-print "Chain operator status: ", last_string();
+print last_string(), "\n";
