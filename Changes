@@ -1,0 +1,8 @@
+Revision history for Perl extension Audio::Ecasound.
+
+0.2   Tue Jun 26 01:28:01 EST 2001
+    - Public debut, Changes file becomes relevant
+0.01  Mon May 21 14:39:57 2001
+    - original version; created by h2xs 1.20 with options
+        -A -x -p eci_ -n ECI ecasound/ecasoundc.h -lecasoundc
+

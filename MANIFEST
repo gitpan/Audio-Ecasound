@@ -1,0 +1,12 @@
+README
+Changes
+Ecasound.pm
+Ecasound.xs
+MANIFEST
+Makefile.PL
+test.pl
+typemap
+eg/oo_int.pl
+eg/raw_int.pl
+eg/simple_int.pl
+eg/iam_int.pl

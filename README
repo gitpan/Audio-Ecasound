@@ -1,0 +1,41 @@
+Audio::Ecasound
+
+DESCRIPTION
+       Audio::Ecasound provides perl bindings to the ecasound
+       control interface of the ecasound program.  You can use
+       perl to automate or interact with ecasound so you don't
+       have to turn you back on the adoring masses packed into
+       Wembly Stadium.
+
+       Ecasound is a software package designed for multitrack
+       audio processing.  It can be used for audio playback,
+       recording, format conversions, effects processing, mixing
+       and as a LADSPA plugin host.  Version >= 2.0.1 must be
+       installed to use this package.  the SEE ALSO entry
+       elsewhere in this document for more info.
+
+INSTALLATION
+        perl Makefile.PL
+
+       If your perl wasn't built with -Dusethreads or
+       -D_REENTRANT you will be prompted whether to continue with
+       the install.  It's in your hands... See the THREADING NOTE
+       entry elsewhere in this document
+
+        make
+        make test
+        make install
+
+
+THREADING NOTE
+       The ecasoundc library uses pthreads so will probably only
+       work if your perl was compiled with threading enabled,
+       check with:
+
+        % perl -V:usethreads
+
+       You are welcome to try using the module with non-threaded
+       perls (perhaps -D_REENTRANT alone would work) but expect
+       problems.  On my Linux box it hangs during intialization
+       without threads but if can be made to work let me know.
+
