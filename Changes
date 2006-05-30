@@ -1,5 +1,10 @@
 Revision history for Perl extension Audio::Ecasound.
 
+0.91  Tue May 30 22:40:23 EST 2006
+    - Fixup pattern for tests on chainsetup error messages
+      (Joel Roth http://ecmdr.infogami.com)
+    - Move test.pl to t/ecasound.t
+    - Add t/pod.t for Kwalitee
 0.9   Sun Aug 10 16:38:10 EST 2003
     - Use UNIVERSAL::isa for self test (more robust)
     - Updated eg/* for new cop-status

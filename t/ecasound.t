@@ -33,7 +33,7 @@ eci_command_float_arg('cs-set-length', 2.0);
 ok eci_last_type() => '-'; # once was ''
 eci_command('start'); 
 ok eci_error() => 1;
-ok eci_last_error() => qr/No chainsetup connected/i; # changed
+ok eci_last_error() => qr/chainsetup cannot be connected|No chainsetup connected/i;
 ok eci_last_type() => 'e'; 
 
 # raw_r interface (test 14)
@@ -44,17 +44,16 @@ my $eh = eci_init_r();
 ok ref($eh) => 'eci_handle_t';
 eci_command_r($eh,'status'); 
 ok eci_last_type_r($eh) => 's';
-ok eci_last_string_r($eh) => qr/Chainsetup status/i; # changed
+ok eci_last_string_r($eh) => qr/Chainsetup status/i;
 eci_cleanup_r($eh);
 
 # simple (test 18)
-ok eci('status') => qr/Chainsetup status/i; #changed
+ok eci('status') => qr/Chainsetup status/i;
 
 ok on_error() => 'warn'; # default val
 ok on_error('') => '';
 ok !defined(eci('start')); # error
-#ok errmsg() => qr/chainsetup cannot be connected/;
-ok errmsg() => qr/No chainsetup connected/i; # changed
+ok errmsg() => qr/chainsetup cannot be connected|No chainsetup connected/i;
 ok errmsg('') => '';
 eci('cs-set-length');  
 ok errmsg() => qr/argument omitted/;
@@ -80,7 +79,7 @@ on_error('warn');
 ok $e->on_error() => 'die'; # diverge from class
 $e->errmsg('');
 eval { $e->eci('start') };
-ok $@ => qr/No chainsetup connected/i;
+ok $@ => qr/chainsetup cannot be connected|No chainsetup connected/i;
 eval { $e->eci('cs-set-length'); };
 ok $@ => qr/argument omitted/;
 ok $e->errmsg() => qr/argument omitted/;
