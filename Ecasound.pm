@@ -73,7 +73,7 @@ sub AUTOLOAD {
     goto &$cmd;
 }
 
-$VERSION = '0.91';
+$VERSION = '0.92';
 bootstrap Audio::Ecasound $VERSION;
 
 # Generate wrappers(OO or not-OO) for raw C functions
@@ -516,6 +516,12 @@ and controls the amount and type of debugging information, see the
 ecasound documentation of source or just try your favorite powers
 of two.
 
+There was a bug effecting Audio::Ecasound with ecasound version
+2.4.4, causing problems with :iam mode, and test failure
+("Do you need to predeclare cs_set_length").  See
+L<http://www.eca.cx/ecasound-list/2006/12/0007.html> and
+L<http://www.eca.cx/ecasound-list/2006/06/0004.html>.
+
 =head1 FILES AND ENVIRONMENT
 
 The libecasoundc library now uses the environment variable
@@ -528,7 +534,7 @@ setup files for default values.  See the library documentation.
 
 =head1 AUTHOR
 
-(c) 2001 Brad Bowman E<lt>eci-perl@bowman.bsE<gt>
+(c) 2001-2007 Brad Bowman E<lt>eci-perl@bereft.netE<gt>
 This software may be distributed under the same terms as Perl itself.
 
 =head1 SEE ALSO

@@ -11,7 +11,7 @@ WriteMakefile(
     LIBS            => ['-lecasoundc'], 
     INC                => '',
     ABSTRACT_FROM    => 'Ecasound.pm', 
-    AUTHOR            => 'Brad Bowman <eci-perl@bowman.bs>', 
+    AUTHOR            => 'Brad Bowman <eci-perl@bereft.net>', 
     dist            => { 
         # expand my tabs to 4
         PREOP => "(cd \$(DISTVNAME); \\
@@ -40,7 +40,8 @@ EOT
                 }
             }
             
-            # ecasound < 2.2 (v2.1dev8) mv'd headers and config prgm
+            # ecasound 2.4.4 http://www.eca.cx/ecasound-list/2006/12/0007.html
+            # old: ecasound < 2.2 (v2.1dev8) mv'd headers and config prgm
             # old: ecasound < 2.0.1 didn't have reentrant C interface
             my $eca_version = `libecasoundc-config --version`;
             if(!defined($eca_version)) {
@@ -48,7 +49,7 @@ EOT
                 
                 print <<EOT;
 The ecasoundc-config program is used to find the version of the
-ecasoundc library.  You need 2.2.0 or higher.
+ecasoundc library.  You need 2.4.5 or higher.
 EOT
                 print "Proceed anyway? ";
                 for(print "(yn)\n"; $_ = <STDIN>; print "(yn)?\n") {
@@ -59,9 +60,10 @@ EOT
                 chomp $eca_version;
                 # Compare versions pre v-strings 
                 my @ev = split /\./, $eca_version;
-                unless($ev[0] >= 2 && $ev[1] >= 2) {
+                # maj > 2 & rest >= 4.5
+                unless($ev[0] >2 || ($ev[0] == 2 && "$ev[1].$ev[2]" >= '4.5')) {
                     print <<EOT;
-Version 2.2.0+ of ecasound is required, you have $eca_version.
+Version 2.4.5+ of ecasound is required, you have $eca_version.
 EOT
                     print "Proceed anyway (bad idea)? ";
                     for(print "(yn)\n"; $_ = <STDIN>; print "(yn)?\n") {

@@ -1,5 +1,11 @@
 Revision history for Perl extension Audio::Ecasound.
 
+0.92  Sun Dec 16 14:15:44 EST 2007
+    - Update email address
+    - 'todo' test done, shush test warning
+    - Require ecasound 2.4.5, document bugs around 2.4.4
+        http://www.eca.cx/ecasound-list/2006/06/0004.html
+        http://www.eca.cx/ecasound-list/2006/12/0007.html
 0.91  Tue May 30 22:40:23 EST 2006
     - Fixup pattern for tests on chainsetup error messages
       (Joel Roth http://ecmdr.infogami.com)
