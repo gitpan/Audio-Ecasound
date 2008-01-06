@@ -1,5 +1,8 @@
 Revision history for Perl extension Audio::Ecasound.
 
+0.93  Sun Jan  6 15:30:02 EST 2008
+    - RT #32101: missing flush to STDOUT from Andreas Koenig
+      $| is Makefile.PL and use MM's prompt instead of custom
 0.92  Sun Dec 16 14:15:44 EST 2007
     - Update email address
     - 'todo' test done, shush test warning

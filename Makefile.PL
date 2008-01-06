@@ -1,4 +1,5 @@
 use ExtUtils::MakeMaker;
+$| = 1;
 
 WriteMakefile(
     NAME            => 'Audio::Ecasound',
@@ -6,8 +7,6 @@ WriteMakefile(
     PREREQ_PM        => {}, # e.g., Module::Name => 1.1
     # next two could be from libecasoundc-config --libs --cflags
     # not for now since want it to install w/o libecasoundc-config
-    # (the -lkvutils shouldn't be required)
-    #LIBS            => ['-lecasoundc -lkvutils'], 
     LIBS            => ['-lecasoundc'], 
     INC                => '',
     ABSTRACT_FROM    => 'Ecasound.pm', 
@@ -27,17 +26,14 @@ WriteMakefile(
             unless ($Config{usethreads} eq 'define'
                 ||  $Config{ccflags} =~ /\b-D_REENTRANT\b/) 
             {
-                print <<EOT;
+                prompt_cont(<<EOT, 'y');
 Your perl was not built with -Dusethreads or -D_REENTRANT
 This may cause problems loading the multithreaded library 
 ecasoundc  (hanging on loading).  It has worked fine for some.
 You are welcome to try...
+
+Proceed anyway?
 EOT
-                print "Proceed anyway? ";
-                for(print "(yn)\n"; $_ = <STDIN>; print "(yn)?\n") {
-                    if(/^n/i) { print "Aborting\n"; exit(1); }
-                    if(/^y/i) { print "Continuing\n"; last; }
-                }
             }
             
             # ecasound 2.4.4 http://www.eca.cx/ecasound-list/2006/12/0007.html
@@ -47,29 +43,23 @@ EOT
             if(!defined($eca_version)) {
                 warn "Running ecasoundc-config failed: $!\n";
                 
-                print <<EOT;
+                prompt_cont(<<EOT, 'y');
 The ecasoundc-config program is used to find the version of the
 ecasoundc library.  You need 2.4.5 or higher.
+
+Proceed anyway?
 EOT
-                print "Proceed anyway? ";
-                for(print "(yn)\n"; $_ = <STDIN>; print "(yn)?\n") {
-                    if(/^n/i) { print "Aborting\n"; exit(1); }
-                    if(/^y/i) { print "Continuing\n"; last; }
-                }
             } else {
                 chomp $eca_version;
                 # Compare versions pre v-strings 
                 my @ev = split /\./, $eca_version;
                 # maj > 2 & rest >= 4.5
                 unless($ev[0] >2 || ($ev[0] == 2 && "$ev[1].$ev[2]" >= '4.5')) {
-                    print <<EOT;
+                    prompt_cont(<<EOT, 'n');
 Version 2.4.5+ of ecasound is required, you have $eca_version.
+                   
+Proceed anyway? (bad idea)
 EOT
-                    print "Proceed anyway (bad idea)? ";
-                    for(print "(yn)\n"; $_ = <STDIN>; print "(yn)?\n") {
-                        if(/^n/i) { print "Aborting\n"; exit; }
-                        if(/^y/i) { print "Continuing\n"; last; }
-                    }
                 }
             }
             unless ($ENV{ECASOUND}) {
@@ -87,3 +77,16 @@ EOT
             return \%cfg;
         },
 );
+
+sub prompt_cont {
+    my ($message, $default) = @_;
+    local $_;
+
+    chomp($message); # because prompt() adds "[y]\n"
+
+    while (1) {
+        $_ = prompt($message, $default);
+        if(/^n/i) { print "Aborting\n"; exit; }
+        if(/^y/i) { print "Continuing\n"; last; }
+    }
+}

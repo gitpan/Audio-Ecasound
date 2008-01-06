@@ -73,7 +73,7 @@ sub AUTOLOAD {
     goto &$cmd;
 }
 
-$VERSION = '0.92';
+$VERSION = '0.93';
 bootstrap Audio::Ecasound $VERSION;
 
 # Generate wrappers(OO or not-OO) for raw C functions
